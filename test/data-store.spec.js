@@ -1,15 +1,15 @@
 const expect = require('unexpected');
 const DataStore = require('../src/data-store.js');
 
-const data = {
+const dataFactory = () => ({
     foo: 'bar',
     baz: {
         a: {x: 1, y: 2, z: 3},
         b: {x: 5, y: 6, z: 7}
     }
-};
+});
 
-const backend = (() => {
+const backendFactory = () => {
     const store = {};
     const deepCopy = function deepCopy(obj) {
         const newObj = obj instanceof Array ? [] : {};
@@ -23,25 +23,39 @@ const backend = (() => {
         save: (id, data) => store[id] = deepCopy(data),
         store
     };
-})();
-
-backend.save('data', data);
+};
 
 describe('DataStore', function() {
+    let backend,
+        store, storeBaz, storeBazA, storeBazB,
+        dataProxy, dataProxyBaz, dataProxyBazA, dataProxyBazB;
+
+    beforeEach('creates a fresh backend and data', function() {
+        backend = backendFactory();
+        backend.save('data', dataFactory());
+
+        store = new DataStore('data', null, {backend});
+        storeBaz = store.ns('baz');
+        storeBazA = storeBaz.ns('a');
+        storeBazB = storeBaz.ns('b');
+        dataProxy = store.getData();
+        dataProxyBaz = storeBaz.getData();
+        dataProxyBazA = storeBazA.getData();
+        dataProxyBazB = storeBazB.getData();
+    });
+
     describe('constructor()', function() {
         it('pre-loads data from object', function() {
-            const store = new DataStore('data', data);
-            expect(store.data, 'to equal', {foo: 'bar', baz: {a: {x: 1, y: 2, z: 3}, b: {x: 5, y: 6, z: 7}}});
+            const store = new DataStore('data', dataFactory());
+            expect(store.data, 'to equal', dataFactory());
         });
 
         it('loads data from backend', function() {
-            const store = new DataStore('data', null, {backend: backend});
-            expect(store.data, 'to equal', {foo: 'bar', baz: {a: {x: 1, y: 2, z: 3}, b: {x: 5, y: 6, z: 7}}});
+            expect(store.data, 'to equal', dataFactory());
         });
     });
 
     describe('[for..of]', function() {
-        const store = new DataStore('data', data);
         let values;
 
         beforeEach('reset values array', function() {
@@ -52,7 +66,7 @@ describe('DataStore', function() {
             for (const value of store) {
                 values.push(value);
             }
-            expect(values, 'to equal', ['bar', {a: {x: 1, y: 2, z: 3}, b: {x: 5, y: 6, z: 7}}]);
+            expect(values, 'to equal', [dataFactory().foo, dataFactory().baz]);
         });
 
         it('does not iterate over deleted values', function() {
@@ -60,21 +74,19 @@ describe('DataStore', function() {
             for (const value of store) {
                 values.push(value);
             }
-            expect(values, 'to equal', ['bar']);
+            expect(values, 'to equal', [dataFactory().foo]);
         });
 
         it('iterates over new values', function() {
-            store.set('abc', 'xyz')
+            store.set('abc', 'xyz');
             for (const value of store) {
                 values.push(value);
             }
-            expect(values, 'to equal', ['bar', 'xyz']);
+            expect(values, 'to equal', [dataFactory().foo, dataFactory().baz, 'xyz']);
         });
     });
 
     describe('keys()', function() {
-        const store = new DataStore('data', data);
-
         it('returns all original keys', function() {
             expect(store.keys(), 'to equal', ['foo', 'baz']);
         });
@@ -86,13 +98,11 @@ describe('DataStore', function() {
 
         it('returns all new keys', function() {
             store.set('abc', 'xyz');
-            expect(store.keys(), 'to equal', ['foo', 'abc']);
+            expect(store.keys(), 'to equal', ['foo', 'baz', 'abc']);
         });
     });
 
     describe('get()', function() {
-        const store = new DataStore('data', data);
-
         it('returns original values', function() {
             expect(store.get('foo'), 'to equal', 'bar');
         });
@@ -123,8 +133,6 @@ describe('DataStore', function() {
     });
 
     describe('has()', function() {
-        const store = new DataStore('data', data);
-
         it('finds original keys', function() {
             expect(store.has('foo'), 'to equal', true);
         });
@@ -155,8 +163,6 @@ describe('DataStore', function() {
     });
 
     describe('set()', function() {
-        const store = new DataStore('data', data);
-
         it('creates new keys', function() {
             store.set('abc', 'qwe');
             expect(store.get('abc'), 'to equal', 'qwe');
@@ -169,8 +175,6 @@ describe('DataStore', function() {
     });
 
     describe('unset()', function() {
-        const store = new DataStore('data', data);
-
         it('unsets existing keys', function() {
             store.unset('foo');
             expect(store.get('foo'), 'to equal', undefined);
@@ -180,14 +184,12 @@ describe('DataStore', function() {
         it('unsets new keys', function() {
             store.set('abc', 'qwe');
             store.unset('abc');
-            expect(store.get('foo'), 'to equal', undefined);
-            expect(store.has('foo'), 'to equal', false);
+            expect(store.get('abc'), 'to equal', undefined);
+            expect(store.has('abc'), 'to equal', false);
         });
     });
 
     describe('reset()', function() {
-        const store = new DataStore('data', data);
-
         it('does not modify original data', function() {
             store.reset();
             expect(store.get('foo'), 'to equal', 'bar');
@@ -215,48 +217,82 @@ describe('DataStore', function() {
     });
 
     describe('commit()', function() {
-        const store = new DataStore('data2', {a: 1, b: 2}, {backend: backend});
-
         it('saves data to the backend', function() {
+            const store = new DataStore('data2', dataFactory(), {backend});
             store.commit();
-            expect(backend.store.data2, 'to equal', {a: 1, b: 2});
+            expect(backend.store.data2, 'to equal', dataFactory());
         });
 
         it('saves changes to the backend', function() {
-            store.unset('a');
-            store.set('b', 1);
-            store.set('c', 2);
+            store.unset('baz');
+            store.set('foo', 'asd');
+            store.set('qux', 'qwe');
             store.commit();
-            expect(backend.store.data2, 'to equal', {b: 1, c: 2});
+            expect(backend.store.data, 'to equal', {foo: 'asd', qux: 'qwe'});
         });
 
         it('persist changes after reset()', function() {
-            store.reset();
-            expect(store.get('a'), 'to equal', undefined);
-            expect(store.has('a'), 'to equal', false);
-            expect(store.get('b'), 'to equal', 1);
-            expect(store.get('c'), 'to equal', 2);
-            expect(store.has('c'), 'to equal', true);            
+            store.unset('baz');
+            store.set('foo', 'asd');
+            store.set('qux', 'qwe');
+            store.commit();
+            expect(store.get('baz'), 'to equal', undefined);
+            expect(store.has('baz'), 'to equal', false);
+            expect(store.get('foo'), 'to equal', 'asd');
+            expect(store.get('qux'), 'to equal', 'qwe');
+            expect(store.has('qux'), 'to equal', true);            
         });
 
         it('allows changes to be loaded again', function() {
-            const store2 = new DataStore('data2', undefined, {backend: backend});
-            expect(store2.get('a'), 'to equal', undefined);
-            expect(store2.has('a'), 'to equal', false);
-            expect(store2.get('b'), 'to equal', 1);
-            expect(store2.get('c'), 'to equal', 2);
-            expect(store2.has('c'), 'to equal', true);      
+            store.unset('baz');
+            store.set('foo', 'asd');
+            store.set('qux', 'qwe');
+            store.commit();
+
+            const store2 = new DataStore('data', null, {backend});
+            expect(store2.get('baz'), 'to equal', undefined);
+            expect(store2.has('baz'), 'to equal', false);
+            expect(store2.get('foo'), 'to equal', 'asd');
+            expect(store2.get('qux'), 'to equal', 'qwe');
+            expect(store2.has('qux'), 'to equal', true);   
+        });
+
+        it('does not save changes to the backend if the "save" flag has been set to "false"', function() {
+            store.unset('baz');
+            store.set('foo', 'asd');
+            store.set('qux', 'qwe');
+            store.commit(false);
+            expect(store.get('baz'), 'to equal', undefined);
+            expect(store.has('baz'), 'to equal', false);
+            expect(store.get('foo'), 'to equal', 'asd');
+            expect(store.get('qux'), 'to equal', 'qwe');
+            expect(store.has('qux'), 'to equal', true);
+
+            const store2 = new DataStore('data', null, {backend});
+            expect(store2.get('baz'), 'to equal', dataFactory().baz);
+            expect(store2.has('baz'), 'to equal', true);
+            expect(store2.get('foo'), 'to equal', 'bar');
+            expect(store2.get('qux'), 'to equal', undefined);
+            expect(store2.has('qux'), 'to equal', false);
+        });
+
+        it('persists changes in the instance after reset() if the "save" flag has been set to "false"', function() {
+            store.unset('baz');
+            store.set('foo', 'asd');
+            store.set('qux', 'qwe');
+            store.commit(false);
+            store.reset();
+            expect(store.get('baz'), 'to equal', undefined);
+            expect(store.has('baz'), 'to equal', false);
+            expect(store.get('foo'), 'to equal', 'asd');
+            expect(store.get('qux'), 'to equal', 'qwe');
+            expect(store.has('qux'), 'to equal', true);
         });
     });
 
     describe('ns()', function() {
-        const store = new DataStore('data', data, {backend: backend});
-        const storeBaz = store.ns('baz');
-        const storeBazA = storeBaz.ns('a');
-        const storeBazB = storeBaz.ns('b');
-
         it('creates a namespace that can access data within a key of its parent', function() {
-            expect(storeBaz.get('a'), 'to equal', {x: 1, y: 2, z: 3});
+            expect(storeBaz.get('a'), 'to equal', dataFactory().baz.a);
         });
 
         it('can access data through nested namespaces', function() {
@@ -279,7 +315,7 @@ describe('DataStore', function() {
 
         it('shares data changes with new namespaces', function() {
             const storeBazA2 = storeBaz.ns('a');
-            expect(storeBazA2.get('x'), 'to equal', 'value');
+            expect(storeBazA2.get('x'), 'to equal', 1);
 
             storeBazA.set('x', 1000);
             expect(storeBazA2.get('x'), 'to equal', 1000);
@@ -307,8 +343,8 @@ describe('DataStore', function() {
             store.set('foo', 'notbar');
             storeBaz.reset();
             expect(store.get('foo'), 'to equal', 'notbar');
-            expect(store.get('baz'), 'to equal', {a: {x: 1, y: 2, z: 3}, b: {x: 5, y: 6, z: 7}});
-            expect(storeBaz.get('a'), 'to equal', {x: 1, y: 2, z: 3});
+            expect(store.get('baz'), 'to equal', dataFactory().baz);
+            expect(storeBaz.get('a'), 'to equal', dataFactory().baz.a);
             expect(storeBazA.get('x'), 'to equal', 1);
         });
 
@@ -319,18 +355,11 @@ describe('DataStore', function() {
             storeBazB.unset('z');
             storeBazB.commit();    
             expect(storeBaz.get('a'), 'to equal', 'different');
-            expect(backend.store.data.baz, 'to equal', {a: {x: 1, y: 2, z: 3}, b: {w: 1, x: 2, y: 6}});
+            expect(backend.store.data.baz, 'to equal', {a: dataFactory().baz.a, b: {w: 1, x: 2, y: 6}});
         });
     });
 
     describe('pointer', function() {
-        const store = new DataStore('data', data);
-        const storeBaz = store.ns('baz');
-        const storeBazA = storeBaz.ns('a');
-
-        const dataProxy = store.getData();
-        const dataProxyBazA = storeBazA.getData();
-
         it('proxies data changes to the DataStore', function() {
             dataProxyBazA.v = 'value 1';
             storeBazA.set('w', 'value 2');
@@ -349,11 +378,11 @@ describe('DataStore', function() {
         it('proxies data through nested namespaces', function() {
             expect(dataProxy.baz.a.x, 'to equal', 1);
 
-            dataProxy.baz.a.u = 'value 3';
-            dataProxy.baz.a.x = 'value 4';
-            expect(storeBazA.get('u'), 'to equal', 'value 3');
+            dataProxy.baz.a.u = 'value 1';
+            dataProxy.baz.a.x = 'value 2';
+            expect(storeBazA.get('u'), 'to equal', 'value 1');
             expect(storeBazA.has('u'), 'to equal', true);
-            expect(storeBazA.get('x'), 'to equal', 'value 4');
+            expect(storeBazA.get('x'), 'to equal', 'value 2');
 
             delete dataProxy.baz.a.x;
             expect(storeBazA.get('x'), 'to equal', undefined);
@@ -361,7 +390,13 @@ describe('DataStore', function() {
         });
 
         it('proxies underlying keys', function() {
-            expect(Object.keys(dataProxyBazA), 'to equal', ['v', 'w', 'u']);
+            dataProxyBazA.v = 'value 1';
+            dataProxy.baz.a.u = 'value 2';
+            delete dataProxyBazA.y;
+            delete dataProxy.baz.a.x;
+            storeBazA.set('w', 'value 2');
+            storeBazA.unset('z');
+            expect(Object.keys(dataProxyBazA), 'to equal', ['v', 'u', 'w']);
         });
     });
 });
