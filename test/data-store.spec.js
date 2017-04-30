@@ -399,4 +399,112 @@ describe('DataStore', function() {
             expect(Object.keys(dataProxyBazA), 'to equal', ['v', 'u', 'w']);
         });
     });
+
+    describe('changed()', function() {
+        it('does not find changes in unchanged stores', function() {
+            expect(store.changed(), 'to equal', false);
+        });
+
+        it('finds changes when creating new keys', function() {
+            store.set('abc', 'qwe');
+            expect(store.changed(), 'to equal', true);
+        });
+
+        it('does not find changes when deleting all new keys', function() {
+            store.set('abc', 'qwe');
+            store.unset('abc');
+            expect(store.changed(), 'to equal', false);
+        });
+
+        it('finds changes when changing existing keys', function() {
+            store.set('foo', 'qwe');
+            expect(store.changed(), 'to equal', true);
+        });
+
+        it('does not find changes when reverting existing key changes', function() {
+            store.set('foo', 'qwe');
+            store.set('foo', 'bar');
+            expect(store.changed(), 'to equal', false);
+        });
+
+        it('finds changes when deleting existing keys', function() {
+            store.unset('foo');
+            expect(store.changed(), 'to equal', true);
+        });
+
+        it('does not find changes when re-setting deleted keys', function() {
+            store.set('foo', 'bar');
+            expect(store.changed(), 'to equal', false);
+        });
+
+        it('does not find changes when the data store is reset', function() {
+            store.unset('foo');
+            store.set('abc', 'qwe');
+            store.set('bar', 'asd');
+            expect(store.changed(), 'to equal', true);
+            store.reset();
+            expect(store.changed(), 'to equal', false);
+        });
+
+        it('does not find changes when the data store is committed', function() {
+            const store = new DataStore('data3', {a: 1, b: 2}, {backend: backend});
+            store.unset('foo');
+            store.set('abc', 'qwe');
+            store.set('bar', 'asd');
+            expect(store.changed(), 'to equal', true);
+            store.commit();
+            expect(store.changed(), 'to equal', false);
+        });
+
+        it('finds changes in child namespaces', function() {
+            store.ns('baz').ns('a').set('x', 1000);
+            expect(store.changed(), 'to equal', true);
+            expect(store.ns('baz').changed(), 'to equal', true);
+            expect(store.ns('baz').ns('a').changed(), 'to equal', true);
+        });
+
+        it('does not find changes from unchanged namespaces', function() {
+            expect(store.ns('foo').changed(), 'to equal', false);
+        });
+
+        it('does not find changes in parent namespace', function() {
+            store.set('xyz', 'qwe');
+            expect(store.ns('baz').ns('b').changed(), 'to equal', false);
+        });
+
+        it('does not find changes in child namespaces after reset()', function() {
+            store.reset();
+            expect(store.ns('baz').ns('a').changed(), 'to equal', false);
+        });
+
+        it('finds changes when creating new keys via pointers', function() {
+            store.getData().abc = 'changed';
+            expect(store.changed(), 'to equal', true);
+        });
+
+        it('does not find changes when deleting all new keys via pointers', function() {
+            delete store.getData().abc;
+            expect(store.changed(), 'to equal', false);
+        });
+
+        it('finds changes when changing existing keys via pointers', function() {
+            store.getData().foo = 'qwe';
+            expect(store.changed(), 'to equal', true);
+        });
+
+        it('does not find changes when reverting existing key changes via pointers', function() {
+            store.getData().foo = 'bar';
+            expect(store.changed(), 'to equal', false);
+        });
+
+        it('finds changes when deleting existing keys via pointers', function() {
+            delete store.getData().foo;
+            expect(store.changed(), 'to equal', true);
+        });
+
+        it('does not find changes when re-setting deleted keys via pointers', function() {
+            store.getData().foo = 'bar';
+            expect(store.changed(), 'to equal', false);
+        });
+    });
 });

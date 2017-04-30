@@ -147,6 +147,34 @@ class DataStore
     }
 
     /**
+     * @returns {Boolean}
+     */
+    changed()
+    {
+        if (!this.activeData) {
+            return false;
+        }
+
+        const pointers = this.getPointers();
+
+        if (Object.keys(pointers[0]).length !== Object.keys(pointers[1]).length) {
+            return true;
+        }
+
+        for (const key in pointers[0]) {
+            const isObject = pointers[0][key] instanceof Object;
+            if (typeof pointers[0][key] !== typeof pointers[1][key]) {
+                return true;
+            } else if (isObject && this.ns(key).changed()) {
+                return true;
+            } else if (!isObject && pointers[0][key] !== pointers[1][key]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * @returns {Object}
      */
     getData()
