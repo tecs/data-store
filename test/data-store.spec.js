@@ -11,9 +11,16 @@ const data = {
 
 const backend = (() => {
     const store = {};
+    const deepCopy = function deepCopy(obj) {
+        const newObj = obj instanceof Array ? [] : {};
+        for (const key in obj) {
+            newObj[key] = obj[key] instanceof Object ? deepCopy(obj[key]) : obj[key];
+        }
+        return newObj;
+    };
     return {
-        load: id => store[id] || {},
-        save: (id, data) => store[id] = data,
+        load: id => deepCopy(store[id]),
+        save: (id, data) => store[id] = deepCopy(data),
         store
     };
 })();
@@ -205,7 +212,6 @@ describe('DataStore', function() {
             expect(store.get('new'), 'to equal', undefined);
             expect(store.has('new'), 'to equal', false);
         });
-
     });
 
     describe('commit()', function() {
