@@ -1,10 +1,17 @@
 class DataStore
 {
     /**
+     * Creates a new DataStore object with the specified ID, optionally suplying the original data, configuration object
+     * and changes object.
+     *
      * @param {String} id
-     * @param {Object} [data]
-     * @param {String[]} [namespace]
-     * @param {Object} [activeData]
+     * @param {Object} [data={}]
+     * @param {Object} [config={}]
+     * @param {Object} [config.backend=this.backendLocalStorage()]
+     * @param {Function(key: String)} config.backend.load
+     * @param {Function(key: String, data: Object)} config.backend.save
+     * @param {String[]} [config.namespace=[]]
+     * @param {Object} [activeData={}]
      */
     constructor(id, data, config, activeData)
     {
@@ -24,6 +31,8 @@ class DataStore
     }
 
     /**
+     * Returns the default localStorage backend.
+     *
      * @returns {Object}
      */
     static backendLocalStorage()
@@ -42,6 +51,8 @@ class DataStore
     }
 
     /**
+     * Returns the data keys in the current namespace.
+     *
      * @returns String[]
      */
     keys()
@@ -51,45 +62,56 @@ class DataStore
     }
 
     /**
-     * @param {String} name
+     * Returns the data contained by the supplied key in the current namespace.
+     *
+     * @param {String} key
+     * @returns {*}
      */
-    get(name)
+    get(key)
     {
         this.resetPointer();
-        return this.pointer[name];
+        return this.pointer[key];
     }
 
     /**
-     * @param {String} name
+     * Returns whether or not the current namespace contains the supplied key.
+     *
+     * @param {String} key
      * @returns {Boolean}
      */
-    has(name)
+    has(key)
     {
         this.resetPointer();
-        return name in this.pointer;
+        return key in this.pointer;
     }
 
     /**
-     * @param {String} name
+     * Sets or overwrites the data of the supplied key in the current namespace.
+     *
+     * @param {String} key
      * @param {*} value
      */
-    set(name, value)
+    set(key, value)
     {
         this.resetPointer();
-        this.pointer[name] = value;
+        this.pointer[key] = value;
     }
 
     /**
-     * @param {String} name
+     * Removes the data with the specified key from the current namespace.
+     *
+     * @param {String} key
      */
-    unset(name)
+    unset(key)
     {
         this.resetPointer();
-        delete this.pointer[name];
+        delete this.pointer[key];
     }
 
     /**
-     * @param {String} name
+     * Returns a new store object in the specified namespace relative to the current one.
+     *
+     * @param {String} key
      * @returns {DataStore}
      */
     ns(name)
@@ -101,7 +123,9 @@ class DataStore
     }
 
     /**
-     * @param {Boolean} [save]
+     * Applies the changes in the current namespace, optionally saving to the backend.
+     *
+     * @param {Boolean} [save=true]
      */
     commit(save)
     {
@@ -123,6 +147,9 @@ class DataStore
         this.reset();
     }
 
+    /**
+     * Resets all changes made to the current namespace.
+     */
     reset()
     {
         if (!this.activeData) {
@@ -150,6 +177,8 @@ class DataStore
     }
 
     /**
+     * Returns whether or not there are changes in the current namespace.
+     *
      * @returns {Boolean}
      */
     changed()
@@ -178,6 +207,8 @@ class DataStore
     }
 
     /**
+     * Returns an object pointing to the data of the current namespace.
+     *
      * @returns {Object}
      */
     getData()
@@ -186,6 +217,8 @@ class DataStore
     }
 
     /**
+     * Returns an array with pointers to the original and the changes data in the current namespace.
+     *
      * @returns {Object[]}
      */
     getPointers()
@@ -200,6 +233,8 @@ class DataStore
     }
 
     /**
+     * Copies the suplied object recursively, ensuring all references are broken.
+     *
      * @param {Object} obj
      * @returns {Object}
      */
@@ -212,8 +247,10 @@ class DataStore
     }
 
     /**
+     * Sets the suplied object as the store's data, optionally clearing all changes.
+     *
      * @param {Object} data
-     * @param {Boolean} [override]
+     * @param {Boolean} [override=false]
      */
     loadData(data, override)
     {
@@ -225,12 +262,18 @@ class DataStore
         }
     }
 
+    /**
+     * Loads the store's data from the backend, clearing all changes.
+     */
     load()
     {
         this.data = this.config.backend.load(this.id);
         this.reset();
     }
 
+    /**
+     * Regenerates the internal data pointer to the current namespace.
+     */
     resetPointer()
     {
         if (!this.activeData) {
