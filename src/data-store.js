@@ -1,12 +1,12 @@
 class DataStore
 {
     /**
-     * @param {String} id 
-     * @param {Object} [data] 
-     * @param {String[]} [namespace] 
-     * @param {Object} [activeData] 
+     * @param {String} id
+     * @param {Object} [data]
+     * @param {String[]} [namespace]
+     * @param {Object} [activeData]
      */
-    constructor(id, data, config, activeData) 
+    constructor(id, data, config, activeData)
     {
         this.id = id;
         this.data = {};
@@ -15,7 +15,7 @@ class DataStore
 
         this.config.backend = this.config.backend || DataStore.backendLocalStorage();
         this.config.namespace = this.config.namespace || [];
-        
+
         if (data) {
             this.loadData(data);
         } else {
@@ -23,6 +23,9 @@ class DataStore
         }
     }
 
+    /**
+     * @returns {Object}
+     */
     static backendLocalStorage()
     {
         return {
@@ -48,7 +51,7 @@ class DataStore
     }
 
     /**
-     * @param {String} name 
+     * @param {String} name
      */
     get(name)
     {
@@ -58,7 +61,7 @@ class DataStore
 
     /**
      * @param {String} name
-     * @returns {Boolean} 
+     * @returns {Boolean}
      */
     has(name)
     {
@@ -67,8 +70,8 @@ class DataStore
     }
 
     /**
-     * @param {String} name 
-     * @param {*} value 
+     * @param {String} name
+     * @param {*} value
      */
     set(name, value)
     {
@@ -77,7 +80,7 @@ class DataStore
     }
 
     /**
-     * @param {String} name 
+     * @param {String} name
      */
     unset(name)
     {
@@ -87,7 +90,7 @@ class DataStore
 
     /**
      * @param {String} name
-     * @returns {DataStore} 
+     * @returns {DataStore}
      */
     ns(name)
     {
@@ -98,7 +101,7 @@ class DataStore
     }
 
     /**
-     * @param {Boolean} [save] 
+     * @param {Boolean} [save]
      */
     commit(save)
     {
@@ -115,7 +118,7 @@ class DataStore
             }
         }
         if (save) {
-            this.config.backend.save(this.id, this.data);        
+            this.config.backend.save(this.id, this.data);
         }
         this.reset();
     }
@@ -210,7 +213,7 @@ class DataStore
 
     /**
      * @param {Object} data
-     * @param {Boolean} [override] 
+     * @param {Boolean} [override]
      */
     loadData(data, override)
     {
@@ -236,7 +239,7 @@ class DataStore
             this.pointer = this.getPointers()[1];
         }
     }
-};
+}
 
 if (typeof window === 'undefined') {
     module.exports = DataStore;
