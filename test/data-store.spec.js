@@ -117,17 +117,17 @@ describe('DataStore', function() {
         });
 
         it('returns new values', function() {
-            store.set('abc', 'xyz')
+            store.set('abc', 'xyz');
             expect(store.get('abc'), 'to equal', 'xyz');
         });
 
         it('does not return deleted new values', function() {
-            store.unset('abc')
+            store.unset('abc');
             expect(store.get('abc'), 'to equal', undefined);
         });
 
         it('returns overwritten values', function() {
-            store.set('baz', 'qwe')
+            store.set('baz', 'qwe');
             expect(store.get('baz'), 'to equal', 'qwe');
         });
     });
@@ -147,17 +147,17 @@ describe('DataStore', function() {
         });
 
         it('finds new values', function() {
-            store.set('abc', 'xyz')
+            store.set('abc', 'xyz');
             expect(store.has('abc'), 'to equal', true);
         });
 
         it('does not find deleted new values', function() {
-            store.unset('abc')
+            store.unset('abc');
             expect(store.has('abc'), 'to equal', false);
         });
 
         it('finds overwritten values', function() {
-            store.set('baz', 'qwe')
+            store.set('baz', 'qwe');
             expect(store.has('baz'), 'to equal', true);
         });
     });
@@ -509,7 +509,7 @@ describe('DataStore', function() {
     });
 
     describe('findFreeKey()', function() {
-        it('finds the next unset key in the store', function () {
+        it('finds the next unset key in the store', function() {
             expect(store.findFreeKey('newkey'), 'to equal', 'newkey1');
 
             store.set('newkey1', '');
@@ -521,7 +521,7 @@ describe('DataStore', function() {
             expect(store.findFreeKey('newkey'), 'to equal', 'newkey1');
         });
 
-        it('finds the next unset key in the store with the specified separator', function () {
+        it('finds the next unset key in the store with the specified separator', function() {
             expect(store.findFreeKey('newkey', ' '), 'to equal', 'newkey 1');
 
             store.set('newkey 1', '');
@@ -533,7 +533,7 @@ describe('DataStore', function() {
             expect(store.findFreeKey('newkey', ' '), 'to equal', 'newkey 1');
         });
 
-        it('finds the next unset key in the store without adding a suffix to the first match', function () {
+        it('finds the next unset key in the store without adding a suffix to the first match', function() {
             expect(store.findFreeKey('newkey', ' ', true), 'to equal', 'newkey');
 
             store.set('newkey', '');

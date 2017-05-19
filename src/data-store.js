@@ -1,8 +1,8 @@
 class DataStore
 {
     /**
-     * Creates a new DataStore object with the specified ID, optionally suplying the original data, configuration object
-     * and changes object.
+     * Creates a new DataStore object with the specified ID, optionally
+     * suplying the original data, configuration object and changes object.
      *
      * @param {String} id
      * @param {Object} [data={}]
@@ -53,7 +53,7 @@ class DataStore
     /**
      * Returns the data keys in the current namespace.
      *
-     * @returns String[]
+     * @returns {String[]}
      */
     keys()
     {
@@ -109,9 +109,10 @@ class DataStore
     }
 
     /**
-     * Returns a new store object in the specified namespace relative to the current one.
+     * Returns a new store object in the specified namespace relative to the
+     * current one.
      *
-     * @param {String} key
+     * @param {String} name
      * @returns {DataStore}
      */
     ns(name)
@@ -123,7 +124,8 @@ class DataStore
     }
 
     /**
-     * Applies the changes in the current namespace, optionally saving to the backend.
+     * Applies the changes in the current namespace, optionally saving to the
+     * backend.
      *
      * @param {Boolean} [save=true]
      */
@@ -170,7 +172,7 @@ class DataStore
         }
 
         for (const key in pointers[1]) {
-            if (! (key in pointers[0])) {
+            if (!(key in pointers[0])) {
                 delete pointers[1][key];
             }
         }
@@ -217,7 +219,8 @@ class DataStore
     }
 
     /**
-     * Returns an array with pointers to the original and the changes data in the current namespace.
+     * Returns an array with pointers to the original and the changes data in
+     * the current namespace.
      *
      * @returns {Object[]}
      */
@@ -233,7 +236,8 @@ class DataStore
     }
 
     /**
-     * Copies the suplied object recursively, ensuring all references are broken.
+     * Copies the suplied object recursively, ensuring all references are
+     * broken.
      *
      * @param {Object} obj
      * @returns {Object}
@@ -247,7 +251,8 @@ class DataStore
     }
 
     /**
-     * Sets the suplied object as the store's data, optionally clearing all changes.
+     * Sets the suplied object as the store's data, optionally clearing all
+     * changes.
      *
      * @param {Object} data
      * @param {Boolean} [override=false]
@@ -285,6 +290,7 @@ class DataStore
 
     /**
      * Finds the next free key in the current namespace.
+     *
      * @param {String} name
      * @param {String} [separator]
      * @param {Boolean} [firstClean=false]
