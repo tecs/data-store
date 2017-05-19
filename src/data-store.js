@@ -282,6 +282,17 @@ class DataStore
             this.pointer = this.getPointers()[1];
         }
     }
+
+    findFreeKey(name, separator, firstClean)
+    {
+        let newName, i = 0;
+        separator = separator || '';
+        do {
+            ++i;
+            newName = name + (firstClean && i === 1 ? '' : `${separator}${i}`);
+        } while (this.has(newName));
+        return newName;
+    }
 }
 
 if (typeof window === 'undefined') {

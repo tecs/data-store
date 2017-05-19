@@ -240,7 +240,7 @@ describe('DataStore', function() {
             expect(store.has('baz'), 'to equal', false);
             expect(store.get('foo'), 'to equal', 'asd');
             expect(store.get('qux'), 'to equal', 'qwe');
-            expect(store.has('qux'), 'to equal', true);            
+            expect(store.has('qux'), 'to equal', true);
         });
 
         it('allows changes to be loaded again', function() {
@@ -254,7 +254,7 @@ describe('DataStore', function() {
             expect(store2.has('baz'), 'to equal', false);
             expect(store2.get('foo'), 'to equal', 'asd');
             expect(store2.get('qux'), 'to equal', 'qwe');
-            expect(store2.has('qux'), 'to equal', true);   
+            expect(store2.has('qux'), 'to equal', true);
         });
 
         it('does not save changes to the backend if the "save" flag has been set to "false"', function() {
@@ -323,7 +323,7 @@ describe('DataStore', function() {
             storeBazA.set('xx', 'value');
             expect(storeBazA2.get('xx'), 'to equal', 'value');
             expect(storeBazA2.has('xx'), 'to equal', true);
-            
+
             storeBazA.unset('xx');
             expect(storeBazA2.get('xx'), 'to equal', undefined);
             expect(storeBazA2.has('xx'), 'to equal', false);
@@ -353,7 +353,7 @@ describe('DataStore', function() {
             storeBazB.set('w', 1);
             storeBazB.set('x', 2);
             storeBazB.unset('z');
-            storeBazB.commit();    
+            storeBazB.commit();
             expect(storeBaz.get('a'), 'to equal', 'different');
             expect(backend.store.data.baz, 'to equal', {a: dataFactory().baz.a, b: {w: 1, x: 2, y: 6}});
         });
@@ -505,6 +505,44 @@ describe('DataStore', function() {
         it('does not find changes when re-setting deleted keys via pointers', function() {
             store.getData().foo = 'bar';
             expect(store.changed(), 'to equal', false);
+        });
+    });
+
+    describe('findFreeKey()', function() {
+        it('finds the next unset key in the store', function () {
+            expect(store.findFreeKey('newkey'), 'to equal', 'newkey1');
+
+            store.set('newkey1', '');
+            expect(store.findFreeKey('newkey'), 'to equal', 'newkey2');
+
+            store.set('newkey3', '');
+            expect(store.findFreeKey('newkey'), 'to equal', 'newkey2');
+            store.unset('newkey1', '');
+            expect(store.findFreeKey('newkey'), 'to equal', 'newkey1');
+        });
+
+        it('finds the next unset key in the store with the specified separator', function () {
+            expect(store.findFreeKey('newkey', ' '), 'to equal', 'newkey 1');
+
+            store.set('newkey 1', '');
+            expect(store.findFreeKey('newkey', ' '), 'to equal', 'newkey 2');
+
+            store.set('newkey 3', '');
+            expect(store.findFreeKey('newkey', ' '), 'to equal', 'newkey 2');
+            store.unset('newkey 1', '');
+            expect(store.findFreeKey('newkey', ' '), 'to equal', 'newkey 1');
+        });
+
+        it('finds the next unset key in the store without adding a suffix to the first match', function () {
+            expect(store.findFreeKey('newkey', ' ', true), 'to equal', 'newkey');
+
+            store.set('newkey', '');
+            expect(store.findFreeKey('newkey', ' ', true), 'to equal', 'newkey 2');
+
+            store.set('newkey 3', '');
+            expect(store.findFreeKey('newkey', ' ', true), 'to equal', 'newkey 2');
+            store.unset('newkey', '');
+            expect(store.findFreeKey('newkey', ' ', true), 'to equal', 'newkey');
         });
     });
 });
