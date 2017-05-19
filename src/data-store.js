@@ -283,6 +283,13 @@ class DataStore
         }
     }
 
+    /**
+     * Finds the next free key in the current namespace.
+     * @param {String} name
+     * @param {String} [separator]
+     * @param {Boolean} [firstClean=false]
+     * @returns {String}
+     */
     findFreeKey(name, separator, firstClean)
     {
         let newName, i = 0;
