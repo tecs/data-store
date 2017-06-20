@@ -2,7 +2,7 @@ class DataStore
 {
     /**
      * Creates a new DataStore object with the specified ID, optionally
-     * suplying the original data, configuration object and changes object.
+     * supplying the original data, configuration object and changes object.
      *
      * @param {String} id
      * @param {Object} [data={}]
@@ -236,7 +236,7 @@ class DataStore
     }
 
     /**
-     * Copies the suplied object recursively, ensuring all references are
+     * Copies the supplied object recursively, ensuring all references are
      * broken.
      *
      * @param {Object} obj
@@ -251,7 +251,7 @@ class DataStore
     }
 
     /**
-     * Sets the suplied object as the store's data, optionally clearing all
+     * Sets the supplied object as the store's data, optionally clearing all
      * changes.
      *
      * @param {Object} data
