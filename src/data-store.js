@@ -306,6 +306,17 @@ class DataStore
         } while (this.has(newName));
         return newName;
     }
+
+    /**
+     * Calls the specified callback for each element in the current namespace.
+     * @param {Callback} callback
+     */
+    forEach(callback)
+    {
+        for (const key of this.keys()) {
+            callback(this.pointer[key], key);
+        }
+    }
 }
 
 if (typeof window === 'undefined') {

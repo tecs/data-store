@@ -579,4 +579,25 @@ describe('DataStore', function() {
             expect(store.findFreeKey('newkey', ' ', true), 'to equal', 'newkey');
         });
     });
+
+    describe('forEach', function() {
+        it('iterates over each element in an array', function() {
+            const params = {indices: [], values: []};
+            storeArray.forEach((value, index) => {
+                params.indices.push(index);
+                params.values.push(value);
+            });
+            expect(params, 'to equal', {indices: [0, 1, 2], values: [1, 2, 3]});
+        });
+
+        it('iterates over each element in an object', function() {
+            const params = {keys: [], values: []};
+            storeBazA.forEach((value, key) => {
+                params.keys.push(key);
+                params.values.push(value);
+            });
+            const testObj = dataFactory().baz.a;
+            expect(params, 'to equal', {keys: Object.keys(testObj), values: Object.values(testObj)});
+        });
+    });
 });
