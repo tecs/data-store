@@ -51,14 +51,14 @@ class DataStore
     }
 
     /**
-     * Returns the data keys in the current namespace.
+     * Returns the data keys or indices in the current namespace.
      *
-     * @returns {String[]}
+     * @returns {String[]|Number[]}
      */
     keys()
     {
         this.resetPointer();
-        return Object.getOwnPropertyNames(this.pointer);
+        return Array.isArray(this.pointer) ? this.pointer.map((_, k) => k) : Object.getOwnPropertyNames(this.pointer);
     }
 
     /**

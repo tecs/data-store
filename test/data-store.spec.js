@@ -6,7 +6,8 @@ const dataFactory = () => ({
     baz: {
         a: {x: 1, y: 2, z: 3},
         b: {x: 5, y: 6, z: 7}
-    }
+    },
+    array: [1, 2, 3]
 });
 
 const backendFactory = () => {
@@ -27,8 +28,8 @@ const backendFactory = () => {
 
 describe('DataStore', function() {
     let backend,
-        store, storeBaz, storeBazA, storeBazB,
-        dataProxy, dataProxyBaz, dataProxyBazA, dataProxyBazB;
+        store, storeBaz, storeBazA, storeBazB, storeArray,
+        dataProxy, dataProxyBaz, dataProxyBazA, dataProxyBazB, dataProxyArray;
 
     beforeEach('creates a fresh backend and data', function() {
         backend = backendFactory();
@@ -38,10 +39,12 @@ describe('DataStore', function() {
         storeBaz = store.ns('baz');
         storeBazA = storeBaz.ns('a');
         storeBazB = storeBaz.ns('b');
+        storeArray = store.ns('array');
         dataProxy = store.getData();
         dataProxyBaz = storeBaz.getData();
         dataProxyBazA = storeBazA.getData();
         dataProxyBazB = storeBazB.getData();
+        dataProxyArray = storeArray.getData();
     });
 
     describe('constructor()', function() {
@@ -62,11 +65,18 @@ describe('DataStore', function() {
             values = [];
         });
 
-        it('iterates over all original values', function() {
+        it('iterates over all original values in objects', function() {
             for (const value of store) {
                 values.push(value);
             }
-            expect(values, 'to equal', [dataFactory().foo, dataFactory().baz]);
+            expect(values, 'to equal', [dataFactory().foo, dataFactory().baz, dataFactory().array]);
+        });
+
+        it('iterates over all original values in arrays', function() {
+            for (const value of storeArray) {
+                values.push(value);
+            }
+            expect(values, 'to equal', dataFactory().array);
         });
 
         it('does not iterate over deleted values', function() {
@@ -74,7 +84,7 @@ describe('DataStore', function() {
             for (const value of store) {
                 values.push(value);
             }
-            expect(values, 'to equal', [dataFactory().foo]);
+            expect(values, 'to equal', [dataFactory().foo, dataFactory().array]);
         });
 
         it('iterates over new values', function() {
@@ -82,29 +92,37 @@ describe('DataStore', function() {
             for (const value of store) {
                 values.push(value);
             }
-            expect(values, 'to equal', [dataFactory().foo, dataFactory().baz, 'xyz']);
+            expect(values, 'to equal', [dataFactory().foo, dataFactory().baz, dataFactory().array, 'xyz']);
         });
     });
 
     describe('keys()', function() {
-        it('returns all original keys', function() {
-            expect(store.keys(), 'to equal', ['foo', 'baz']);
+        it('returns all original keys in objects', function() {
+            expect(store.keys(), 'to equal', ['foo', 'baz', 'array']);
+        });
+
+        it('returns all original indices in arrays', function() {
+            expect(storeArray.keys(), 'to equal', [0, 1, 2]);
         });
 
         it('returns all but the deleted keys', function() {
             store.unset('baz');
-            expect(store.keys(), 'to equal', ['foo']);
+            expect(store.keys(), 'to equal', ['foo', 'array']);
         });
 
         it('returns all new keys', function() {
             store.set('abc', 'xyz');
-            expect(store.keys(), 'to equal', ['foo', 'baz', 'abc']);
+            expect(store.keys(), 'to equal', ['foo', 'baz', 'array', 'abc']);
         });
     });
 
     describe('get()', function() {
-        it('returns original values', function() {
+        it('returns original values from objects', function() {
             expect(store.get('foo'), 'to equal', 'bar');
+        });
+
+        it('returns original values from arrays', function() {
+            expect(storeArray.get(0), 'to equal', 1);
         });
 
         it('does not return deleted values', function() {
@@ -133,7 +151,11 @@ describe('DataStore', function() {
     });
 
     describe('has()', function() {
-        it('finds original keys', function() {
+        it('finds original keys in objects', function() {
+            expect(store.has('foo'), 'to equal', true);
+        });
+
+        it('finds original indices in arrays', function() {
             expect(store.has('foo'), 'to equal', true);
         });
 
@@ -163,9 +185,14 @@ describe('DataStore', function() {
     });
 
     describe('set()', function() {
-        it('creates new keys', function() {
+        it('creates new keys in objects', function() {
             store.set('abc', 'qwe');
             expect(store.get('abc'), 'to equal', 'qwe');
+        });
+
+        it('creates new indices in arrays', function() {
+            storeArray.set(3, 4);
+            expect(storeArray.get(3), 'to equal', 4);
         });
 
         it('overwrites existing keys', function() {
@@ -175,10 +202,16 @@ describe('DataStore', function() {
     });
 
     describe('unset()', function() {
-        it('unsets existing keys', function() {
+        it('unsets existing keys in objects', function() {
             store.unset('foo');
             expect(store.get('foo'), 'to equal', undefined);
             expect(store.has('foo'), 'to equal', false);
+        });
+
+        it('unsets existing indices in arrays', function() {
+            storeArray.unset(0);
+            expect(store.get(0), 'to equal', undefined);
+            expect(store.has(0), 'to equal', false);
         });
 
         it('unsets new keys', function() {
@@ -225,6 +258,7 @@ describe('DataStore', function() {
 
         it('saves changes to the backend', function() {
             store.unset('baz');
+            store.unset('array');
             store.set('foo', 'asd');
             store.set('qux', 'qwe');
             store.commit();
