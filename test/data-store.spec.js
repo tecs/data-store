@@ -600,4 +600,28 @@ describe('DataStore', function() {
             expect(params, 'to equal', {keys: Object.keys(testObj), values: Object.values(testObj)});
         });
     });
+
+    describe('map()', function() {
+        it('maps new values to each element of an array', function() {
+            const mapped = storeArray.map((value, index) => `${index}-${value}`);
+            expect(mapped, 'to equal', ['0-1', '1-2', '2-3']);
+        });
+
+        it('maps new values to each element of an object', function() {
+            const mapped = storeBazA.map((value, key) => `${key}-${value}`);
+            expect(mapped, 'to equal', {x: 'x-1', y: 'y-2', z: 'z-3'});
+        });
+
+        it('remaps the values to each element of an array namespace', function() {
+            const mapped = storeArray.map((value, index) => `${index}-${value}`, true);
+            expect(storeArray.getData(), 'to equal', ['0-1', '1-2', '2-3']);
+            expect(mapped.getData(), 'to equal', ['0-1', '1-2', '2-3']);
+        });
+
+        it('remaps the values to each element of an object namespace', function() {
+            const mapped = storeBazA.map((value, key) => `${key}-${value}`, true);
+            expect(storeBazA.getData(), 'to equal', {x: 'x-1', y: 'y-2', z: 'z-3'});
+            expect(mapped.getData(), 'to equal', {x: 'x-1', y: 'y-2', z: 'z-3'});
+        });
+    });
 });

@@ -319,13 +319,35 @@ class DataStore
 
     /**
      * Calls the specified callback for each element in the current namespace.
+     *
      * @param {Callback} callback
      */
     forEach(callback)
     {
-        for (const key of this.keys()) {
-            callback(this.pointer[key], key);
+        this.map(callback);
+    }
+
+    /**
+     * Maps the elements of the current namespace to the output of the provided
+     * callback, optionally modifying the original data.
+     *
+     * @param {Callback} callback
+     * @param {Boolean} [inPlace=false]
+     * @returns {Array|Object|this}
+     */
+    map(callback, inPlace)
+    {
+        if (inPlace) {
+            for (const key of this.keys()) {
+                this.set(key, callback(this.pointer[key], key));
+            }
+            return this;
         }
+        const mapped = this.isArray ? [] : {};
+        for (const key of this.keys()) {
+            mapped[key] = callback(this.pointer[key], key);
+        }
+        return mapped;
     }
 }
 
