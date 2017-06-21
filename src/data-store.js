@@ -51,6 +51,16 @@ class DataStore
     }
 
     /**
+     * Returns whether or not the current namespace is an array.
+     *
+     * @returns {Boolean}
+     */
+    get isArray()
+    {
+        return Array.isArray(this.pointer);
+    }
+
+    /**
      * Returns the data keys or indices in the current namespace.
      *
      * @returns {String[]|Number[]}
@@ -58,7 +68,7 @@ class DataStore
     keys()
     {
         this.resetPointer();
-        return Array.isArray(this.pointer) ? this.pointer.map((_, k) => k) : Object.getOwnPropertyNames(this.pointer);
+        return this.isArray ? this.pointer.map((_, k) => k) : Object.getOwnPropertyNames(this.pointer);
     }
 
     /**
