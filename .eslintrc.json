@@ -8,6 +8,11 @@
     "parserOptions": {
         "sourceType": "module"
     },
+    "globals": {
+        "it": true,
+        "describe": true,
+        "beforeEach": true
+    },
     "rules": {
         "indent": ["error", 4],
         "linebreak-style": ["error", "unix"],
