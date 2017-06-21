@@ -580,7 +580,7 @@ describe('DataStore', function() {
         });
     });
 
-    describe('forEach', function() {
+    describe('forEach()', function() {
         it('iterates over each element in an array', function() {
             const params = {indices: [], values: []};
             storeArray.forEach((value, index) => {
