@@ -624,4 +624,16 @@ describe('DataStore', function() {
             expect(mapped.getData(), 'to equal', {x: 'x-1', y: 'y-2', z: 'z-3'});
         });
     });
+
+    describe('filter()', function() {
+        it('returns only the matching elements of an array', function() {
+            const filtered = storeArray.filter((value, index) => value === 1 || index === 2);
+            expect(filtered, 'to equal', [1, 3]);
+        });
+
+        it('returns only the matching elements of an object', function() {
+            const filtered = storeBazA.filter((value, key) => value === 1 || key === 'z');
+            expect(filtered, 'to equal', {x: 1, z: 3});
+        });
+    });
 });

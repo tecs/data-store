@@ -349,6 +349,34 @@ class DataStore
         }
         return mapped;
     }
+
+    /**
+     * Filters the elements of the current namespace based on the output of the
+     * provided callback
+     *
+     * @param {Callback} callback
+     * @returns {Array|Object}
+     */
+    filter(callback)
+    {
+        if (this.isArray) {
+            const filtered = [];
+            for (const key of this.keys()) {
+                if (callback(this.pointer[key], key)) {
+                    filtered.push(this.pointer[key]);
+                }
+            }
+            return filtered;
+        }
+
+        const filtered = {};
+        for (const key of this.keys()) {
+            if (callback(this.pointer[key], key)) {
+                filtered[key] = this.pointer[key];
+            }
+        }
+        return filtered;
+    }
 }
 
 if (typeof window === 'undefined') {
